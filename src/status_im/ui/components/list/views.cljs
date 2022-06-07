@@ -34,13 +34,14 @@
        (f data index)))))
 
 (defn- base-list-props
-  [{:keys [key-fn render-fn empty-component header footer separator default-separator? render-data]}]
+  [{:keys [key-fn render-fn empty-component header footer separator default-separator? render-data sticky-header]}]
   (merge (when key-fn            {:keyExtractor (memo-wrap-key-fn key-fn)})
          (when render-fn         {:renderItem (memo-wrap-render-fn render-fn render-data)})
          (when separator         {:ItemSeparatorComponent (memo-separator-fn separator default-separator?)})
          (when empty-component   {:ListEmptyComponent (memo-as-element empty-component)})
          (when header            {:ListHeaderComponent (memo-as-element header)})
-         (when footer            {:ListFooterComponent (memo-as-element footer)})))
+         (when footer            {:ListFooterComponent (memo-as-element footer)})
+         (when sticky-header     {:stickyHeaderIndices (memo-as-element sticky-header)})))
 
 (defn flat-list
   "A wrapper for FlatList.

@@ -1,4 +1,4 @@
-(ns quo.components.header-redesign
+(ns quo2.components.header-redesign
   (:require [oops.core :refer [oget]]
             [quo.animated :as animated]
             [quo.components.button.view :as button]

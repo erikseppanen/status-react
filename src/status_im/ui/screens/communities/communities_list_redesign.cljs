@@ -6,19 +6,23 @@
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.home.styles :as styles]
             [status-im.ui.screens.communities.community-views-redesign :as community-views]
-            [quo.components.separator :as separator]
+            [quo2.components.separator :as separator]
             [quo2.components.text :as quo2.text]
             [quo2.components.button :as quo2.button]
+            [quo2.components.counter :as quo2.counter]
             [quo2.components.filter-tags :as quo2.filter-tags]
             [quo2.foundations.typography :as typography]
             [quo2.foundations.colors :as quo2.colors]
+            [quo.design-system.colors :as colors]
+            [quo.animated :as animated]
+            [quo.core :as quo]
             [status-im.qr-scanner.core :as qr-scanner]
             [quo2.components.tabs :as quo2.tabs]
             [status-im.constants :as constants]
-            [quo.design-system.colors :as colors]
             [status-im.react-native.resources :as resources]
+            [status-im.ui.components.profile-header.view :as profile-header]
             [status-im.ui.components.plus-button-redesign :as components.plus-button]
-            [status-im.ui.components.icons.icons :as icons])
+            [quo2.components.icon :as icons])
   (:require-macros [status-im.utils.views :as views]))
 
 (def selected-tag (reagent/atom 0))
@@ -34,7 +38,7 @@
     :on-press #(re-frame/dispatch [::qr-scanner/scan-code
                                    {:title   (i18n/label :t/add-bootnode)
                                     :handler :bootnodes.callback/qr-code-scanned}])}
-   :main-icons2/placeholder])
+   :main-icons2/scanner])
 
 (defn qr-code []
   [quo2.button/button
@@ -43,33 +47,33 @@
     :size                32
     :style               {:margin-left 10}
     :accessibility-label :contact-qr-code-button}
-   :main-icons2/placeholder])
+   :main-icons2/qr-code])
 
 (views/defview notifications-button []
   (views/letsubs [notif-count [:activity.center/notifications-count]]
-    [react/view
-     [quo2.button/button {:icon                true
-                          :type                :grey
-                          :size                32
-                          :style               {:margin-left 10}
-                          :accessibility-label "notifications-button"
-                          :on-press #(do
-                                       (re-frame/dispatch [:mark-all-activity-center-notifications-as-read])
-                                       (re-frame/dispatch [:navigate-to :notifications-center]))}
-      :main-icons2/placeholder]
-     (when (pos? notif-count)
-       [react/view {:style (merge (styles/counter-public-container) {:top 5 :right 5})
-                    :pointer-events :none}
-        [react/view {:style               styles/counter-public
-                     :accessibility-label :notifications-unread-badge}]])]))
+                 [react/view
+                  [quo2.button/button {:icon                true
+                                       :type                :grey
+                                       :size                32
+                                       :style               {:margin-left 10}
+                                       :accessibility-label "notifications-button"
+                                       :on-press #(do
+                                                    (re-frame/dispatch [:mark-all-activity-center-notifications-as-read])
+                                                    (re-frame/dispatch [:navigate-to :notifications-center]))}
+                   :main-icons2/notifications]
+                  (when (pos? notif-count)
+                    [react/view {:style (merge (styles/counter-public-container) {:top 5 :right 5})
+                                 :pointer-events :none}
+                     [react/view {:style               styles/counter-public
+                                  :accessibility-label :notifications-unread-badge}]])]))
 
 (views/defview plus-button []
   (views/letsubs [logging-in? [:multiaccounts/login]]
-    [components.plus-button/plus-button
-     {:on-press (when-not logging-in?
-                  #(re-frame/dispatch [:bottom-sheet/show-sheet :add-new {}]))
-      :loading logging-in?
-      :accessibility-label :new-chat-button}]))
+                 [components.plus-button/plus-button
+                  {:on-press (when-not logging-in?
+                               #(re-frame/dispatch [:bottom-sheet/show-sheet :add-new {}]))
+                   :loading logging-in?
+                   :accessibility-label :new-chat-button}]))
 
 (defn render-popular-fn [{:keys [chat-id] :as community-item}]
   (when-not chat-id
@@ -78,10 +82,6 @@
 (defn render-featured-fn [{:keys [chat-id] :as community-item}]
   (when-not chat-id
     [community-views/community-card-list-item community-item :featured]))
-
-(defn render-categorized-fn [{:keys [chat-id] :as community-item}]
-  (when-not chat-id
-    [community-views/categorized-communities-list-item community-item]))
 
 (defn community-list-key-fn [item]
   (:id item))
@@ -93,7 +93,7 @@
   {:data [{:id             constants/status-community-id
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "token-gated"
+           :status         "gated"
            :section        "featured"
            :permissions-granted true
            :community-icon (resources/get-image :status-logo)
@@ -101,10 +101,20 @@
            :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
                   {:id 2 :label "NFT"    :resource (resources/reactions :love)}
                   {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}
-          {:id             2
+          {:id             constants/status-community-id
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "open"
+           :status         "gated"
+           :section        "featured"
+           :community-icon (resources/get-image :status-logo)
+           :color               (rand-nth colors/chat-colors)
+           :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
+                  {:id 2 :label "NFT"    :resource (resources/reactions :love)}
+                  {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}
+          {:id             constants/status-community-id
+           :name           "Status"
+           :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
+           :status         "open"
            :section        "featured"
            :community-icon (resources/get-image :status-logo)
            :color               (rand-nth colors/chat-colors)
@@ -116,7 +126,7 @@
   {:data [{:id             constants/status-community-id
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "token-gated"
+           :status         "gated"
            :section        "popular"
            :permissions-granted true
            :community-icon      (resources/get-image :status-logo)
@@ -127,7 +137,37 @@
           {:id             2
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "open"
+           :status         "gated"
+           :section        "popular"
+           :community-icon (resources/get-image :status-logo)
+           :color               (rand-nth colors/chat-colors)
+           :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
+                  {:id 2 :label "NFT"    :resource (resources/reactions :love)}
+                  {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}
+          {:id             3
+           :name           "Status"
+           :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
+           :status         "open"
+           :section        "popular"
+           :community-icon (resources/get-image :status-logo)
+           :color               (rand-nth colors/chat-colors)
+           :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
+                  {:id 2 :label "NFT"    :resource (resources/reactions :love)}
+                  {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}
+          {:id             4
+           :name           "Status"
+           :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
+           :status         "open"
+           :section        "popular"
+           :community-icon (resources/get-image :status-logo)
+           :color               (rand-nth colors/chat-colors)
+           :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
+                  {:id 2 :label "NFT"    :resource (resources/reactions :love)}
+                  {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}
+          {:id             5
+           :name           "Status"
+           :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
+           :status         "open"
            :section        "popular"
            :community-icon (resources/get-image :status-logo)
            :color               (rand-nth colors/chat-colors)
@@ -139,7 +179,7 @@
   {:data [{:id             constants/status-community-id
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "token-gated"
+           :status         "gated"
            :section        "all"
            :permissions-granted true
            :community-icon (resources/get-image :status-logo)
@@ -150,13 +190,38 @@
           {:id             2
            :name           "Status"
            :description    "Status is a secure messaging app, crypto wallet and web3 browser built with the state of the art technology"
-           :type           "open"
+           :status         "gated"
            :section        "all"
            :community-icon (resources/get-image :status-logo)
            :color               (rand-nth colors/chat-colors)
            :tags [{:id 1 :label "Crypto" :resource (resources/reactions :angry)}
                   {:id 2 :label "NFT"    :resource (resources/reactions :love)}
                   {:id 3 :label "DeFi"   :resource (resources/reactions :thumbs-up)}]}]})
+
+(defn community-tabs []
+  [react/view {:flex    1}
+   [react/view {:flex-direction     :row
+                :align-items        :center
+                :padding-bottom     16}
+    [react/view {:flex   1}
+     [quo2.tabs/tabs {:size              32
+                      :on-change         #(reset! selected-tab %)
+                      :default-active    :all
+                      :data [{:id :all   :label "All"}
+                             {:id :open  :label "Open"}
+                             {:id :gated :label "Gated"}]}]]
+    [react/view {:flex-direction :row}
+     [quo2.button/button
+      {:icon                true
+       :type                :outline
+       :size                32
+       :style               {:margin-right 12}}
+      :main-icons2/lightning]
+     [quo2.button/button
+      {:icon                true
+       :type                :outline
+       :size                32}
+      :main-icons2/placeholder]]]])
 
 (views/defview featured-communities []
   (let [items (get communities-items-featured :data)]
@@ -169,16 +234,6 @@
       :data                              items
       :render-fn                         render-featured-fn}]))
 
-(views/defview all-communities []
-  (let [items (get all-communities-items :data)]
-    [list/flat-list
-     {:key-fn                            community-list-key-fn
-      :getItemLayout                     get-item-layout
-      :keyboard-should-persist-taps      :always
-      :shows-horizontal-scroll-indicator false
-      :data                              items
-      :render-fn                         render-categorized-fn}]))
-
 (views/defview popular-communities []
   (let [items (get communities-items-popular :data)]
     [list/flat-list
@@ -187,75 +242,68 @@
       :keyboard-should-persist-taps      :always
       :shows-horizontal-scroll-indicator false
       :data                              items
+      :header                            [community-tabs]
+      :sticky-header                     (first items)
       :render-fn                         render-popular-fn}]))
 
-(defn community-tabs []
+
+
+(defn community-tabs-view []
   (let [tab @selected-tab]
-    [react/view {:margin-top          8
-                 :margin-bottom       4
-                 :padding-horizontal  20}
-     [react/view {:padding-vertical   12}
-      [quo2.tabs/tabs {:size              32
-                       :on-change         #(reset! selected-tab %)
-                       :default-active    :all
-                       :data [{:id :all   :label "All"}
-                              {:id :open  :label "Open"}
-                              {:id :gated :label "Token Gated"}]}]]
+    [react/view {:padding-horizontal  20}
+
      (cond
        (= tab :all)
        [react/view
-        [all-communities]]
+        [popular-communities]]
        (= tab :open)
        [react/view
-        [all-communities]]
+        [popular-communities]]
        (= tab :gated)
        [react/view
-        [all-communities]])]))
+        [popular-communities]])]))
 
 (defn communities-sections []
-  [:<>
-   [react/view {:padding-left 20}
-    [react/view {:flex-direction      :row
-                 :align-items         :center
-                 :padding-bottom      8}
-     [quo2.text/text
-      {:style (merge {:accessibility-label :featured-communities-title}
-                     typography/paragraph-1
-                     typography/font-semi-bold)}
-      "Featured"]]
-    [featured-communities]]
-   [react/view {:margin-vertical    20
-                :padding-horizontal 20}
-    [separator/separator-redesign]]
-   [react/view {:padding-horizontal 20}
-    [quo2.text/text
-     {:style (merge {:accessibility-label :popular-communities-title
-                     :padding-bottom      8}
-                    typography/paragraph-1
-                    typography/font-semi-bold)}
-     "Popular"]
-    [popular-communities]]
-   [community-tabs]])
+  (let [count (reagent/atom {:value 2 :type :grey})]
+    [:<>
+     [react/view {:padding-left 20}
+      [react/view {:flex-direction  :row
+                   :align-item      :center
+                   :justify-content :space-between
+                   :padding-bottom  8}
+       [react/view {:flex-direction  :row
+                    :align-items     :center}
+        [quo2.text/text
+         {:style (merge {:accessibility-label :featured-communities-title
+                         :margin-right        6}
+                        typography/paragraph-1
+                        typography/font-semi-bold)}
+         "Featured"]
+        [quo2.counter/counter @count (:value @count)]]
+       [react/view {:align-items :center}
+        [icons/icon :main-icons2/info {:height 20
+                                       :color  (quo2.colors/theme-colors
+                                                quo2.colors/neutral-50
+                                                quo2.colors/neutral-40)
+                                       :width  20}]]]
+      [featured-communities]]]))
 
 (defn title-column []
   [react/view
    {:flex-direction     :row
     :align-items        :center
     :justify-content    :center
-    :padding-horizontal 20
-    :padding-vertical   8}
+    :padding-vertical   8
+    :padding-horizontal 20}
    [react/view
-    {:flex-direction :row
-     :flex           1
-     :padding-right  16
-     :align-items    :center}
+    {:flex           1}
     [quo2.text/text
      {:style (merge {:accessibility-label :community-name-text
                      :ellipsize-mode      :tail
                      :number-of-lines     1}
                     typography/font-semi-bold
                     typography/heading-1)}
-     :Communities]]
+     "Communities"]]
    [plus-button]])
 
 (views/defview community-filter-tags []
@@ -270,9 +318,9 @@
     [react/scroll-view {:horizontal                        true
                         :shows-horizontal-scroll-indicator false
                         :scroll-event-throttle             64
-                        :padding-horizontal                20
                         :margin-top                        12
-                        :margin-bottom                     20}
+                        :margin-bottom                     20
+                        :padding-horizontal                20}
      [react/view {:flex-direction :row}
       [react/view {:margin-right       12
                    :height             32
@@ -293,21 +341,26 @@
                               :on-change      #(reset! selected-tag %)
                               :data           filters}]]]))
 
+
+
 (defn views []
-  (fn [insets]
-    [react/view {:style {:flex             1
-                         :padding-top      (:top insets)
-                         :background-color (quo2.colors/theme-colors quo2.colors/neutral-5 quo2.colors/neutral-95)}}
-     [react/view
-      {:flex-direction     :row
-       :padding-horizontal 20
-       :padding-vertical   12
-       :align-items        :center
-       :justify-content    :flex-end}
-      [qr-scanner]
-      [qr-code]
-      [notifications-button]]
-     [react/scroll-view
-      [title-column]
-      [community-filter-tags]
-      [communities-sections]]]))
+  [react/view {:style {:flex             1
+                       :background-color (quo2.colors/theme-colors quo2.colors/neutral-5 quo2.colors/neutral-95)}}
+   [react/view
+    {:flex-direction     :row
+     :padding-vertical   12
+     :padding-horizontal 20
+     :align-items        :center
+     :justify-content    :flex-end}
+    [qr-scanner]
+    [qr-code]
+    [notifications-button]]
+   [title-column]
+   [react/scroll-view
+    [community-filter-tags]
+    [communities-sections]
+    [react/view {:margin-top         20
+                 :margin-bottom     24
+                 :padding-horizontal 20}
+     [separator/separator]]
+    [community-tabs-view]]])

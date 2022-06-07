@@ -1,7 +1,7 @@
 (ns status-im.ui.components.topbar-redesign
   (:require
    [re-frame.core :as re-frame]
-   [quo.components.header-redesign :as header-redesign]
+   [quo2.components.header-redesign :as header-redesign]
    [quo.core :as quo]))
 
 (def default-button-width 48)
