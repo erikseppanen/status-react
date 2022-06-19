@@ -2,7 +2,8 @@
   (:require [reagent.core :as reagent]
             [status-im.i18n.i18n :as i18n]
             [quo.core :as quo]
-            [quo.design-system.colors :as colors]))
+            [quo.design-system.colors :as colors]
+            [quo2.foundations.colors :as quo2.colors]))
 
 (defn search-input [{:keys [search-active?]}]
   (let [input-ref      (atom nil)
@@ -19,18 +20,18 @@
                        :show-cancel         true
                        :auto-correct        false
                        :auto-capitalize     :none
-                       :container-style               {:border-radius 10
-                                                       :border-width 1
-                                                       :border-color (:ui-01  @colors/theme)
-                                                       :background-color (:ui-background-03  @colors/theme)
-                                                       :overflow :hidden}
+                       :container-style     {:border-radius 10
+                                             :border-width 1
+                                             :border-color (:ui-01  @colors/theme)
+                                             :background-color (quo2.colors/theme-colors quo2.colors/white quo2.colors/ui-background-03-dark)
+                                             :overflow :hidden}
                        :input-style         {:height         32
                                              :padding-top    2
                                              :padding-bottom 2
-                                             :background-color (:ui-background-03  @colors/theme)}
-                       :before              {:icon      :main-icons/search
+                                             :background-color (quo2.colors/theme-colors quo2.colors/white quo2.colors/ui-background-03-dark)}
+                       :before              {:icon      :main-icons/search2
                                              :style     {:padding-horizontal 8
-                                                         :background-color (:ui-background-03  @colors/theme)}
+                                                         :background-color (quo2.colors/theme-colors quo2.colors/white quo2.colors/ui-background-03-dark)}
                                              :on-press  #(some-> ^js @input-ref (.focus))
                                              :icon-opts {:color (:icon-01  @colors/theme)}}
                        :on-focus            #(do

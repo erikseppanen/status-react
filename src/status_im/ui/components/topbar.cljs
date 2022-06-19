@@ -21,11 +21,11 @@
     (assoc :label label)))
 
 (defn topbar [{:keys [navigation use-insets right-accessories modal? content border-bottom?]
+               :or   {border-bottom? true}
                :as   props}]
   (let [navigation (if (= navigation :none)
                      nil
-                     [(default-navigation modal? navigation)])
-        border-bottom (if (nil? border-bottom?) true border-bottom?)]
+                     [(default-navigation modal? navigation)])]
     [quo/safe-area-consumer
      (fn [insets]
        [quo/header (merge {:left-accessories navigation
@@ -33,7 +33,7 @@
                            :insets           (when use-insets insets)
                            :left-width       (when navigation
                                                default-button-width)
-                           :border-bottom    border-bottom}
+                           :border-bottom    border-bottom?}
                           props
                           (when (seq right-accessories)
                             {:right-accessories right-accessories}))])]))

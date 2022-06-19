@@ -119,8 +119,8 @@
             [status-im.ui.screens.wallet.send.views :as wallet.send]
             [quo2.screens.main :as quo2.preview]
             [status-im.utils.config :as config]
-            [status-im.navigation2.screens :as navigation2.screens]))
-            ;[quo2.foundations.colors :as quo2.colors]))
+            [status-im.navigation2.screens :as navigation2.screens]
+            [quo2.foundations.colors :as quo2.colors]))
 
 (def components
   [{:name      :chat-toolbar
@@ -129,7 +129,7 @@
 (defn right-button-options [id icon]
   {:id   id
    :icon (icons/icon-source icon)
-   :iconBackground {:color (:ui-background-03 @colors/theme)
+   :iconBackground {:color (quo2.colors/theme-colors quo2.colors/ui-background-03-light quo2.colors/ui-background-03-dark)
                     :cornerRadius 10
                     :width 32
                     :height 32}})

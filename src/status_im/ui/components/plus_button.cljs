@@ -7,13 +7,13 @@
 (def action-button-container
   {:align-items     :center
    :justify-content :center
-   :height          40})
+   :height          32})
 
 (defn action-button []
-  {:width            40
-   :height           40
+  {:width            32
+   :height           32
    :background-color (:interactive-01 @colors/theme)
-   :border-radius    20
+   :border-radius    18
    :align-items      :center
    :justify-content  :center})
 

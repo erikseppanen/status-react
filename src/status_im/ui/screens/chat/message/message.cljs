@@ -484,8 +484,7 @@
                               (reset! collapsible? true))}
                (when (and (seq response-to) (:quoted-message message))
                  [quoted-message response-to (:quoted-message message) outgoing current-public-key public? pinned])
-               [render-parsed-text-with-message-status message (:parsed-text content)]])
-            (when-not @collapsible? [message-status message])]]]]))))
+               [render-parsed-text-with-message-status message (:parsed-text content)]])]]]]))))
 
 (defmethod ->message constants/content-type-text
   [message {:keys [on-long-press modal] :as reaction-picker}]

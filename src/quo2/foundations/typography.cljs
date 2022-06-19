@@ -1,4 +1,5 @@
-(ns quo2.foundations.typography)
+(ns quo2.foundations.typography
+  (:require [quo2.foundations.colors :as quo2.colors]))
 
 (def heading-1 {:font-size   27
                 :line-height 32.4
@@ -30,3 +31,10 @@
 (def font-bold {:font-family "Inter-Bold"}) ; 700
 
 (def monospace {:font-family "InterStatus-Regular"})
+
+(defn message-default-style []
+  {:font-family "Inter-Regular"
+   :color       quo2.colors/black
+   :font-size   15
+   :line-height 21.75
+   :letter-spacing -0.135})

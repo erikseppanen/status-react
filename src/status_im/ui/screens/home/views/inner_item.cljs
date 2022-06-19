@@ -6,7 +6,6 @@
             [status-im.ui.components.badge :as badge]
             [quo.design-system.colors :as colors]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
-            [quo.core :as quo]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.home.styles :as styles]
             [status-im.ui.components.icons.icons :as icons]
@@ -14,7 +13,8 @@
             [status-im.utils.datetime :as time]
             [status-im.ui.components.chat-icon.styles :as chat-icon.styles]
             [quo2.components.text :as quo2.text]
-            [status-im.utils.utils :as utils.utils]))
+            [status-im.utils.utils :as utils.utils]
+            [quo2.foundations.colors :as quo2.colors]))
 
 (defn preview-label [label-key label-fn]
   [react/text {:style               styles/last-message-text
@@ -153,15 +153,15 @@
     [icons/icon :main-icons/tiny-new-contact (icon-style)]))
 
 (defn chat-item-title [chat-id muted group-chat chat-name edit?]
-  [quo/text {:weight              :semi-bold
-             :color               (when muted :secondary)
-             :accessibility-label :chat-name-text
-             :ellipsize-mode      :tail
-             :number-of-lines     1
-             :style               {:position :absolute
-                                   :left     72
-                                   :top      10
-                                   :right    (if edit? 50 90)}}
+  [quo2.text/text {:weight              :semi-bold
+                   :color               (when muted :secondary)
+                   :accessibility-label :chat-name-text
+                   :ellipsize-mode      :tail
+                   :number-of-lines     1
+                   :style               {:position :absolute
+                                         :left     72
+                                         :top      10
+                                         :right    (if edit? 50 90)}}
    (if group-chat
      (utils/truncate-str chat-name 30)
      ;; This looks a bit odd, but I would like only to subscribe
@@ -191,24 +191,26 @@
          [unviewed-indicator home-item]])
       [react/view {:position :absolute :left 72 :top 32 :right 80}
        (if public?
-         [quo/text {:monospace       true
-                    :color           :secondary
-                    :number-of-lines 1
-                    :ellipsize-mode  :middle}
+         [quo2.text/text {:color           :secondary
+                          :number-of-lines 1
+                          :ellipsize-mode  :middle
+                          :weight :medium
+                          :style {:color (quo2.colors/theme-colors quo2.colors/neutral-50 quo2.colors/neutral-40)}}
           "Public"]
          (if group-chat [react/view {:flex-direction :row
                                      :flex           1
                                      :padding-right  16
                                      :align-items    :center}
-                         [icons/icon :main-icons/tiny-group
-                          {:color           colors/black
-                           :width           14
-                           :height          14
-                           :container-style {:width        14
-                                             :height       14
-                                             :margin-right 5}}]
-                         [quo2.text/text (i18n/label :t/members-count {:count (count contacts)})]] [quo/text {:monospace       true
-                                                                                                              :color           :secondary
-                                                                                                              :number-of-lines 1
-                                                                                                              :ellipsize-mode  :middle}
-                                                                                                    (utils.utils/get-shortened-address chat-id)]))]]]))
+                         [icons/icon :main-icons/tiny-group2
+                          {:width           16
+                           :height          16
+                           :container-style {:width        16
+                                             :height       16
+                                             :margin-right 4}}]
+                         [quo2.text/text {:weight :medium
+                                          :style {:color (quo2.colors/theme-colors quo2.colors/neutral-50 quo2.colors/neutral-40)}} (i18n/label :t/members-count {:count (count contacts)})]] [quo2.text/text {:monospace true
+                                                                                                                                                                                                               :weight :medium
+                                                                                                                                                                                                               :style {:color (quo2.colors/theme-colors quo2.colors/neutral-50 quo2.colors/neutral-40)}
+                                                                                                                                                                                                               :number-of-lines 1
+                                                                                                                                                                                                               :ellipsize-mode  :middle}
+                                                                                                                                                                                               (utils.utils/get-shortened-address chat-id)]))]]]))

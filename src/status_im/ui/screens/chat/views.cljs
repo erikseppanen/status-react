@@ -36,7 +36,9 @@
             [status-im.utils.utils :as utils]
             [status-im.utils.debounce :as debounce]
             [status-im.navigation.state :as navigation.state]
-            [status-im.react-native.resources :as resources]))
+            [status-im.react-native.resources :as resources]
+            [status-im.ui.components.topbar :as topbar]
+            [quo2.foundations.colors :as quo2.colors]))
 
 (defn invitation-requests [chat-id admins]
   (let [current-pk @(re-frame/subscribe [:multiaccount/public-key])
@@ -395,7 +397,7 @@
 (defn back-button []
   [react/view
    [quo/button {:type     :icon
-                :style {:width 32 :height 32 :background-color (:ui-background-03 @colors/theme) :border-radius 10}
+                :style {:width 32 :height 32 :background-color (quo2.colors/theme-colors quo2.colors/ui-background-03-light quo2.colors/ui-background-03-dark) :border-radius 10}
                 :accessibility-label "back-button"
                 :on-press #(re-frame/dispatch [:navigate-back])
                 :theme    :icon}
@@ -404,7 +406,7 @@
 (defn search-button []
   [react/view
    [quo/button {:type     :icon
-                :style {:width 32 :height 32 :background-color (:ui-background-03 @colors/theme) :border-radius 10}
+                :style {:width 32 :height 32 :background-color (quo2.colors/theme-colors quo2.colors/ui-background-03-light quo2.colors/ui-background-03-dark) :border-radius 10}
                 :accessibility-label "search-button"
                 :theme    :icon}
     :main-icons/search]])
@@ -412,26 +414,17 @@
 (defn topbar-content []
   (let [window-width @(re-frame/subscribe [:dimensions/window-width])
         {:keys [group-chat chat-id] :as chat-info} @(re-frame/subscribe [:chats/current-chat])]
-    [react/view {:flex-direction :row :align-items :center :padding-horizontal 20 :height 56 :background-color (:ui-background @colors/theme)}
-     [back-button]
+    [react/view {:flex-direction :row :align-items :center :height 56}
      [react/touchable-highlight {:on-press #(when-not group-chat
                                               (debounce/dispatch-and-chill [:chat.ui/show-profile chat-id] 1000))
                                  :style    {:flex 1 :margin-left 12 :width (- window-width 120)}}
-      [toolbar-content/toolbar-content-view-inner chat-info]]
-     [search-button]]))
+      [toolbar-content/toolbar-content-view-inner chat-info]]]))
 
 (defn navigate-back-handler []
   (when (and (not @navigation.state/curr-modal) (= (get @re-frame.db/app-db :view-id) :chat))
     (react/hw-back-remove-listener navigate-back-handler)
     (re-frame/dispatch [:close-chat])
     (re-frame/dispatch [:navigate-back])))
-
-(defn topbar []
-  (let [window-width @(re-frame/subscribe [:dimensions/window-width])
-        {:keys [group-chat chat-id] :as chat-info} @(re-frame/subscribe [:chats/current-chat])]
-    [react/touchable-highlight {:on-press #(when-not group-chat (re-frame/dispatch [:chat.ui/show-profile chat-id]))
-                                :style {:flex 1 :width (- window-width 120)}}
-     [toolbar-content/toolbar-content-view-inner chat-info]]))
 
 (defn chat-render []
   (let [bottom-space (reagent/atom 0)
@@ -452,7 +445,13 @@
             mutual-contact-requests-enabled? @(re-frame/subscribe [:mutual-contact-requests/enabled?])
             max-bottom-space (max @bottom-space @panel-space)]
         [:<>
-         [topbar-content]
+         [topbar/topbar {:navigation      :none
+                         :left-component [react/view {:flex-direction :row :margin-left 16}
+                                          [back-button]]
+                         :title-component [topbar-content]
+                         :right-component [react/view {:flex-direction :row :margin-right 16}
+                                           [search-button]]
+                         :border-bottom false}]
          [connectivity/loading-indicator]
          (when chat-id
            (if group-chat

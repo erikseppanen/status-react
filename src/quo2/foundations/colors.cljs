@@ -193,5 +193,14 @@
 (def switcher-background-opa-90 (alpha switcher-background 0.9))
 (def switcher-background-opa-95 (alpha switcher-background 0.95))
 
+;;General
+
+;; background
+
+(def ui-background-02-light "rgba(245,249,250,1)")
+(def ui-background-03-light "rgba(230,237,240,1)")
+(def ui-background-02-dark "rgba(4,11,20,1)")
+(def ui-background-03-dark "rgba(14, 22, 32, 1)")
+
 (defn theme-colors [light dark]
   (if (theme/dark?) dark light))

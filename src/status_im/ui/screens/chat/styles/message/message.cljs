@@ -3,7 +3,7 @@
             [quo.design-system.colors :as colors]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.chat.styles.photos :as photos]
-            [status-im.ui.components.typography :as typography]))
+            [quo2.foundations.typography :as quo2.typography]))
 
 (defn style-message-text
   []
@@ -250,8 +250,7 @@
 
 (defn default-text-style []
   {:max-font-size-multiplier react/max-font-size-multiplier
-   :style (assoc (typography/default-style)
-                 :line-height 22)})
+   :style (quo2.typography/message-default-style)})
 
 (defn outgoing-text-style []
   (update (default-text-style) :style
