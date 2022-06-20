@@ -24,6 +24,7 @@
 
 (def app-state (.-AppState react-native))
 (def view (reagent/adapt-react-class (.-View react-native)))
+(def safe-area-view (reagent/adapt-react-class (.-SafeAreaView react-native)))
 
 (def scroll-view-class (reagent/adapt-react-class (.-ScrollView react-native)))
 (def keyboard-avoiding-view-class (reagent/adapt-react-class (.-KeyboardAvoidingView react-native)))

@@ -6,6 +6,7 @@
             [status-im.ui.components.badge :as badge]
             [quo.design-system.colors :as colors]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
+            [quo.core :as quo]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.home.styles :as styles]
             [status-im.ui.components.icons.icons :as icons]
@@ -131,6 +132,22 @@
        :else
        [badge/message-counter unviewed-messages-count])]))
 
+(defn unviewed-indicator-old [{:keys [unviewed-mentions-count
+                                      unviewed-messages-count
+                                      public?]}]
+  (when (pos? unviewed-messages-count)
+    [react/view {:position :absolute :right 16 :bottom 12}
+     (cond
+       (and public? (not (pos? unviewed-mentions-count)))
+       [react/view {:style               styles/public-unread
+                    :accessibility-label :unviewed-messages-public}]
+
+       (and public? (pos? unviewed-mentions-count))
+       [badge/message-counter unviewed-mentions-count]
+
+       :else
+       [badge/message-counter unviewed-messages-count])]))
+
 (defn icon-style []
   {:color           colors/black
    :width           15
@@ -162,6 +179,23 @@
                                          :left     72
                                          :top      10
                                          :right    (if edit? 50 90)}}
+   (if group-chat
+     (utils/truncate-str chat-name 30)
+     ;; This looks a bit odd, but I would like only to subscribe
+     ;; if it's a one-to-one. If wrapped in a component styling
+     ;; won't be applied correctly.
+     (first @(re-frame/subscribe [:contacts/contact-two-names-by-identity chat-id])))])
+
+(defn chat-item-title-old [chat-id muted group-chat chat-name edit?]
+  [quo/text {:weight              :medium
+             :color               (when muted :secondary)
+             :accessibility-label :chat-name-text
+             :ellipsize-mode      :tail
+             :number-of-lines     1
+             :style               {:position :absolute
+                                   :left     92
+                                   :top      10
+                                   :right    (if edit? 50 90)}}
    (if group-chat
      (utils/truncate-str chat-name 30)
      ;; This looks a bit odd, but I would like only to subscribe
@@ -214,3 +248,31 @@
                                                                                                                                                                                                                :number-of-lines 1
                                                                                                                                                                                                                :ellipsize-mode  :middle}
                                                                                                                                                                                                (utils.utils/get-shortened-address chat-id)]))]]]))
+
+(defn home-list-item-old [home-item opts]
+  (let [{:keys [chat-id chat-name color group-chat public? timestamp last-message muted emoji highlight edit?]} home-item
+        background-color (when highlight (colors/get-color :interactive-02))]
+    [react/touchable-opacity (merge {:style {:height 64 :background-color background-color}} opts)
+     [:<>
+      [chat-item-icon muted (and group-chat (not public?)) (and group-chat public?)]
+      [chat-icon.screen/emoji-chat-icon-view chat-id group-chat chat-name emoji
+       {:container              (assoc chat-icon.styles/container-chat-list
+                                       :top 12 :left 16 :position :absolute)
+        :size                   40
+        :chat-icon              chat-icon.styles/chat-icon-chat-list
+        :default-chat-icon      (chat-icon.styles/default-chat-icon-chat-list color)
+        :default-chat-icon-text (if (string/blank? emoji)
+                                  (chat-icon.styles/default-chat-icon-text 40)
+                                  (chat-icon.styles/emoji-chat-icon-text 40))}]
+      [chat-item-title-old chat-id muted group-chat chat-name edit?]
+      (when-not edit?
+        [:<>
+         [react/text {:style               styles/datetime-text
+                      :number-of-lines     1
+                      :accessibility-label :last-message-time-text}
+          ;;TODO (perf) move to event
+          (memo-timestamp (if (pos? (:whisper-timestamp last-message))
+                            (:whisper-timestamp last-message)
+                            timestamp))]
+         [unviewed-indicator-old home-item]])
+      [message-content-text (select-keys last-message [:content :content-type :community-id]) true]]]))

@@ -75,6 +75,26 @@
                        (re-frame/dispatch [:set-in [:contacts/new-identity :state] :searching])
                        (debounce/debounce-and-dispatch [:new-chat/set-new-identity text] 300))}]])
 
+(defn search-input-wrapper-old [search-filter chats-empty]
+  [react/view {:padding-horizontal 16
+               :padding-vertical   10}
+   [search-input/search-input-old
+    {:search-active? search-active?
+     :search-filter  search-filter
+     :on-cancel      #(re-frame/dispatch [:search/home-filter-changed nil])
+     :on-blur        (fn []
+                       (when chats-empty
+                         (re-frame/dispatch [:search/home-filter-changed nil]))
+                       (re-frame/dispatch [::new-chat/clear-new-identity]))
+     :on-focus       (fn [search-filter]
+                       (when-not search-filter
+                         (re-frame/dispatch [:search/home-filter-changed ""])
+                         (re-frame/dispatch [::new-chat/clear-new-identity])))
+     :on-change      (fn [text]
+                       (re-frame/dispatch [:search/home-filter-changed text])
+                       (re-frame/dispatch [:set-in [:contacts/new-identity :state] :searching])
+                       (debounce/debounce-and-dispatch [:new-chat/set-new-identity text] 300))}]])
+
 (defn start-suggestion [search-value]
   (let [{:keys [state ens-name public-key]}
         @(re-frame/subscribe [:contacts/new-identity])
@@ -105,6 +125,23 @@
   ;; We use `chat-id` to distinguish communities from chats
   (if chat-id
     [inner-item/home-list-item
+     home-item
+     {:on-press      (fn []
+                       (re-frame/dispatch [:dismiss-keyboard])
+                       (if (and @config/new-ui-enabled? platform/android?)
+                         (re-frame/dispatch [:chat.ui/navigate-to-chat-nav2 chat-id])
+                         (re-frame/dispatch [:chat.ui/navigate-to-chat chat-id]))
+                       (re-frame/dispatch [:search/home-filter-changed nil])
+                       (re-frame/dispatch [:accept-all-activity-center-notifications-from-chat chat-id]))
+      :on-long-press #(re-frame/dispatch [:bottom-sheet/show-sheet
+                                          {:content (fn []
+                                                      [sheets/actions home-item])}])}]
+    [communities.views/community-home-list-item home-item]))
+
+(defn render-fn-old [{:keys [chat-id] :as home-item}]
+  ;; We use `chat-id` to distinguish communities from chats
+  (if chat-id
+    [inner-item/home-list-item-old
      home-item
      {:on-press      (fn []
                        (re-frame/dispatch [:dismiss-keyboard])
@@ -149,6 +186,31 @@
                                         [home-tooltip-view]
                                         [react/view {:height 68}])}])))
 
+(views/defview communities-and-chats-old []
+  (views/letsubs [{:keys [items search-filter]} [:home-items]
+                  hide-home-tooltip? [:hide-home-tooltip?]]
+    (if (and (empty? items)
+             (empty? search-filter)
+             hide-home-tooltip?
+             (not @search-active?))
+      [welcome-blank-page]
+      [list/flat-list
+       {:key-fn                       chat-list-key-fn
+        :getItemLayout                get-item-layout
+        :on-end-reached               #(re-frame/dispatch [:chat.ui/show-more-chats])
+        :keyboard-should-persist-taps :always
+        :data                         items
+        :render-fn                    render-fn-old
+        :header                       [:<>
+                                       (when (or (seq items) @search-active? (seq search-filter))
+                                         [search-input-wrapper-old search-filter (empty? items)])
+                                       (when (and (empty? items)
+                                                  (or @search-active? (seq search-filter)))
+                                         [start-suggestion search-filter])]
+        :footer                       (if (and (not hide-home-tooltip?) (not @search-active?))
+                                        [home-tooltip-view]
+                                        [react/view {:height 68}])}])))
+
 (views/defview chats-list []
   (views/letsubs [loading? [:chats/loading?]]
     [:<>
@@ -158,9 +220,26 @@
         [react/activity-indicator {:animating true}]]
        [communities-and-chats])]))
 
+(views/defview chats-list-old []
+  (views/letsubs [loading? [:chats/loading?]]
+    [:<>
+     [connectivity/loading-indicator]
+     (if loading?
+       [react/view {:flex 1 :align-items :center :justify-content :center}
+        [react/activity-indicator {:animating true}]]
+       [communities-and-chats-old])]))
+
 (views/defview plus-button []
   (views/letsubs [logging-in? [:multiaccounts/login]]
     [components.plus-button/plus-button
+     {:on-press (when-not logging-in?
+                  #(re-frame/dispatch [:bottom-sheet/show-sheet :add-new {}]))
+      :loading logging-in?
+      :accessibility-label :new-chat-button}]))
+
+(views/defview plus-button-old []
+  (views/letsubs [logging-in? [:multiaccounts/login]]
+    [components.plus-button/plus-button-old
      {:on-press (when-not logging-in?
                   #(re-frame/dispatch [:bottom-sheet/show-sheet :add-new {}]))
       :loading logging-in?
@@ -177,6 +256,23 @@
                                (re-frame/dispatch [:navigate-to :notifications-center]))
                   :theme    :icon}
       :main-icons/notification2]
+     (when (pos? notif-count)
+       [react/view {:style (merge (styles/counter-public-container) {:top 5 :right 5})
+                    :pointer-events :none}
+        [react/view {:style               styles/counter-public
+                     :accessibility-label :notifications-unread-badge}]])]))
+
+(views/defview notifications-button-old []
+  (views/letsubs [notif-count [:activity.center/notifications-count]]
+    [react/view
+     [quo/button {:type     :icon
+                  :style {:margin-left 10}
+                  :accessibility-label "notifications-button"
+                  :on-press #(do
+                               (re-frame/dispatch [:mark-all-activity-center-notifications-as-read])
+                               (re-frame/dispatch [:navigate-to :notifications-center]))
+                  :theme    :icon}
+      :main-icons/notification]
      (when (pos? notif-count)
        [react/view {:style (merge (styles/counter-public-container) {:top 5 :right 5})
                     :pointer-events :none}
@@ -216,6 +312,7 @@
   [react/keyboard-avoiding-view {:style {:flex 1 :background-color (quo2.colors/theme-colors quo2.colors/ui-background-02-light quo2.colors/ui-background-02-dark)}
                                  :ignore-offset true}
    [topbar/topbar {:navigation      :none
+                   :use-insets true
                    :background (quo2.colors/theme-colors quo2.colors/ui-background-02-light quo2.colors/ui-background-02-dark)
                    :left-component [react/view {:flex-direction :row :margin-left 16}
                                     [profile-button]]
@@ -233,4 +330,16 @@
     [quo2.text/text {:size :heading-1 :weight :semi-bold} "Messages"]
     [plus-button]]
    [chats-list]
+   [tabbar/tabs-counts-subscriptions]])
+
+(defn home-old []
+  [react/keyboard-avoiding-view {:style {:flex 1}
+                                 :ignore-offset true}
+   [topbar/topbar {:title           (i18n/label :t/chat)
+                   :navigation      :none
+                   :right-component [react/view {:flex-direction :row :margin-right 16}
+                                     [connectivity/connectivity-button]
+                                     [notifications-button-old]]}]
+   [chats-list-old]
+   [plus-button-old]
    [tabbar/tabs-counts-subscriptions]])
