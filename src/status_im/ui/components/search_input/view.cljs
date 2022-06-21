@@ -33,7 +33,7 @@
                                              :style     {:padding-horizontal 8
                                                          :background-color (quo2.colors/theme-colors quo2.colors/white quo2.colors/ui-background-03-dark)}
                                              :on-press  #(some-> ^js @input-ref (.focus))
-                                             :icon-opts {:color (:icon-01  @colors/theme)}}
+                                             :icon-opts {:color (quo2.colors/theme-colors quo2.colors/neutral-50 quo2.colors/white)}}
                        :on-focus            #(do
                                                (when on-focus
                                                  (on-focus search-filter))

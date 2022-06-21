@@ -238,6 +238,7 @@
                          [icons/icon :main-icons/tiny-group2
                           {:width           16
                            :height          16
+                           :no-color        true
                            :container-style {:width        16
                                              :height       16
                                              :margin-right 4}}]
