@@ -17,20 +17,20 @@ class TestTimelineHistoryNodesBootnodesMultipleDeviceMergedMedium(MultipleShared
 
     def prepare_devices(self):
         self.drivers, self.loop = create_shared_drivers(2)
-        device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
-        self.home_1, self.home_2 = device_1.create_user(), device_2.create_user()
-        self.profile_1, self.profile_2 = self.home_1.profile_button.click(), self.home_2.profile_button.click()
-        self.public_key_1, self.username_1 = self.profile_1.get_public_key_and_username(return_username=True)
-        self.public_key_2, self.username_2 = self.profile_2.get_public_key_and_username(return_username=True)
-        self.text_message = 'hello'
-        [home.home_button.click() for home in (self.home_1, self.home_2)]
-        self.public_chat_name = self.home_1.get_random_chat_name()
-        self.chat_1, self.chat_2 = self.home_1.join_public_chat(self.public_chat_name), self.home_2.join_public_chat(
-            self.public_chat_name)
-        self.chat_1.send_message(self.text_message)
-        [home.home_button.click() for home in (self.home_1, self.home_2)]
-        self.home_1.add_contact(self.public_key_2, add_in_contacts=False)
-        self.home_2.add_contact(self.public_key_1, add_in_contacts=False)
+        # device_1, device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
+        # self.home_1, self.home_2 = device_1.create_user(), device_2.create_user()
+        # self.profile_1, self.profile_2 = self.home_1.profile_button.click(), self.home_2.profile_button.click()
+        # self.public_key_1, self.username_1 = self.profile_1.get_public_key_and_username(return_username=True)
+        # self.public_key_2, self.username_2 = self.profile_2.get_public_key_and_username(return_username=True)
+        # self.text_message = 'hello'
+        # [home.home_button.click() for home in (self.home_1, self.home_2)]
+        # self.public_chat_name = self.home_1.get_random_chat_name()
+        # self.chat_1, self.chat_2 = self.home_1.join_public_chat(self.public_chat_name), self.home_2.join_public_chat(
+        #     self.public_chat_name)
+        # self.chat_1.send_message(self.text_message)
+        # [home.home_button.click() for home in (self.home_1, self.home_2)]
+        # self.home_1.add_contact(self.public_key_2, add_in_contacts=False)
+        # self.home_2.add_contact(self.public_key_1, add_in_contacts=False)
 
     @marks.testrail_id(702284)
     def test_public_chat_timeline_different_statuses_reaction(self):

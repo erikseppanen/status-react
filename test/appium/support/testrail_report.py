@@ -189,6 +189,7 @@ class TestrailReport(BaseTestReport):
                     error = "%s %s" % (code_error, test_rail_xfail)
                 else:
                     error = full_error
+                error = error.replace("[[", "**").replace("]]", "**")
                 comment += '%s' % ('# Error: \n %s \n' % emoji.demojize(error)) + devices + test_steps
             else:
                 comment += devices + test_steps

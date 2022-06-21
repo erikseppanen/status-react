@@ -622,30 +622,30 @@ class TestContactBlockMigrateKeycardMultipleSharedDevices(MultipleSharedDeviceTe
 
     def prepare_devices(self):
         self.drivers, self.loop = create_shared_drivers(2)
-        self.device_1, self.device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
-        self.sender = transaction_senders['ETH_2']
-        self.nick = "FFOO_brak!1234"
-        self.message = self.device_1.get_random_message()
-        self.pub_chat_name = self.device_1.get_random_chat_name()
-        self.home_1 = self.device_1.recover_access(self.sender['passphrase'], keycard=True)
-        self.home_2 = self.device_2.create_user()
-        self.profile_2 = self.home_2.profile_button.click()
-        self.profile_2.privacy_and_security_button.click()
-        self.profile_2.backup_recovery_phrase_button.click()
-        recovery_phrase = self.profile_2.backup_recovery_phrase()
-        self.recovery_phrase = ' '.join(recovery_phrase.values())
-        self.public_key_2, self.default_username_2 = self.home_2.get_public_key_and_username(return_username=True)
-        self.chat_1 = self.home_1.add_contact(self.public_key_2, add_in_contacts=False)
-        self.chat_1.chat_options.click()
-        self.chat_1.view_profile_button.click()
-        self.chat_1.set_nickname(self.nick)
-        [home.home_button.click() for home in [self.home_1, self.home_2]]
-        self.home_2.add_contact(self.sender['public_key'])
-        self.home_2.home_button.click()
-        [home.join_public_chat(self.pub_chat_name) for home in [self.home_1, self.home_2]]
-        self.chat_2 = self.home_2.get_chat_view()
-        self.chat_2.send_message(self.message)
-        [home.home_button.click() for home in [self.home_1, self.home_2]]
+        # self.device_1, self.device_2 = SignInView(self.drivers[0]), SignInView(self.drivers[1])
+        # self.sender = transaction_senders['ETH_2']
+        # self.nick = "FFOO_brak!1234"
+        # self.message = self.device_1.get_random_message()
+        # self.pub_chat_name = self.device_1.get_random_chat_name()
+        # self.home_1 = self.device_1.recover_access(self.sender['passphrase'], keycard=True)
+        # self.home_2 = self.device_2.create_user()
+        # self.profile_2 = self.home_2.profile_button.click()
+        # self.profile_2.privacy_and_security_button.click()
+        # self.profile_2.backup_recovery_phrase_button.click()
+        # recovery_phrase = self.profile_2.backup_recovery_phrase()
+        # self.recovery_phrase = ' '.join(recovery_phrase.values())
+        # self.public_key_2, self.default_username_2 = self.home_2.get_public_key_and_username(return_username=True)
+        # self.chat_1 = self.home_1.add_contact(self.public_key_2, add_in_contacts=False)
+        # self.chat_1.chat_options.click()
+        # self.chat_1.view_profile_button.click()
+        # self.chat_1.set_nickname(self.nick)
+        # [home.home_button.click() for home in [self.home_1, self.home_2]]
+        # self.home_2.add_contact(self.sender['public_key'])
+        # self.home_2.home_button.click()
+        # [home.join_public_chat(self.pub_chat_name) for home in [self.home_1, self.home_2]]
+        # self.chat_2 = self.home_2.get_chat_view()
+        # self.chat_2.send_message(self.message)
+        # [home.home_button.click() for home in [self.home_1, self.home_2]]
 
     @marks.testrail_id(702186)
     def test_keycard_command_send_tx_eth_1_1_chat(self):
