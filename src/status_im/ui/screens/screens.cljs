@@ -230,7 +230,7 @@
             ;;                                             :alignment :fill}
             ;;                              :rightButtons (right-button-options :chat-search :search)
             ;;                              :leftButtons (right-button-options :back :main-icons/arrow-left)}}
-            :component     chat/chat}
+            :component     chat/chat-old}
 
            ;Pinned messages
            {:name      :chat-pinned-messages

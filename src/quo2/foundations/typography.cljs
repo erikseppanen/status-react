@@ -34,7 +34,7 @@
 
 (defn message-default-style []
   {:font-family "Inter-Regular"
-   :color       quo2.colors/black
+   :color       (quo2.colors/theme-colors quo2.colors/black quo2.colors/white)
    :font-size   15
    :line-height 21.75
    :letter-spacing -0.135})

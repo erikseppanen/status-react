@@ -16,6 +16,7 @@
             [quo.react-native :as rn]
             [status-im.ui.screens.chat.audio-message.views :as audio-message]
             [quo.react :as quo.react]
+            [status-im.ui.screens.chat.message.message-old :as message-old]
             [status-im.ui.screens.chat.message.message :as message]
             [status-im.ui.screens.chat.stickers.views :as stickers]
             [status-im.ui.screens.chat.styles.main :as style]
@@ -27,6 +28,7 @@
             [status-im.ui.screens.chat.message.gap :as gap]
             [status-im.ui.screens.chat.components.accessory :as accessory]
             [status-im.ui.screens.chat.components.input :as components]
+            [status-im.ui.screens.chat.message.datemark-old :as message-datemark-old]
             [status-im.ui.screens.chat.message.datemark :as message-datemark]
             [status-im.ui.components.toolbar :as toolbar]
             [quo.core :as quo]
@@ -287,6 +289,29 @@
     [react/view {:style (when platform/android? {:scaleY -1})}
      [chat.group/group-chat-footer chat-id invitation-admin]]))
 
+(defn render-fn-old [{:keys [outgoing type] :as message}
+                 idx
+                 _
+                 {:keys [group-chat public? community? current-public-key space-keeper
+                         chat-id show-input? message-pin-enabled edit-enabled in-pinned-view?]}]
+  [react/view {:style (when (and platform/android? (not in-pinned-view?)) {:scaleY -1})}
+   (if (= type :datemark)
+     [message-datemark-old/chat-datemark (:value message)]
+     (if (= type :gap)
+       [gap/gap message idx messages-list-ref false chat-id]
+       ; message content
+       [message-old/chat-message
+        (assoc message
+               :incoming-group (and group-chat (not outgoing))
+               :group-chat group-chat
+               :public? public?
+               :community? community?
+               :current-public-key current-public-key
+               :show-input? show-input?
+               :message-pin-enabled message-pin-enabled
+               :edit-enabled edit-enabled)
+        space-keeper]))])
+
 (defn render-fn [{:keys [outgoing type] :as message}
                  idx
                  _
@@ -342,6 +367,57 @@
      :message-pin-enabled message-pin-enabled
      :edit-enabled        edit-enabled
      :in-pinned-view?     in-pinned-view?}))
+
+(defn messages-view-old [{:keys [chat
+                                 bottom-space
+                                 pan-responder
+                                 mutual-contact-requests-enabled?
+                                 space-keeper
+                                 show-input?]}]
+  (let [{:keys [group-chat chat-type chat-id public? community-id admins]} chat
+
+        messages @(re-frame/subscribe [:chats/raw-chat-messages-stream chat-id])
+        one-to-one?   (= chat-type constants/one-to-one-chat-type)
+        contact-added? (when one-to-one? @(re-frame/subscribe [:contacts/contact-added? chat-id]))
+        should-send-contact-request?
+        (and
+         mutual-contact-requests-enabled?
+         one-to-one?
+         (not contact-added?))]
+
+    ;;do not use anonymous functions for handlers
+    [list/flat-list
+     (merge
+      pan-responder
+      {:key-fn                       list-key-fn
+       :ref                          list-ref
+       :header                       [list-header chat]
+       :footer                       [list-footer chat]
+       :data                         (when-not should-send-contact-request?
+                                       messages)
+       :render-data                  (get-render-data {:group-chat      group-chat
+                                                       :chat-id         chat-id
+                                                       :public?         public?
+                                                       :community-id    community-id
+                                                       :admins          admins
+                                                       :space-keeper    space-keeper
+                                                       :show-input?     show-input?
+                                                       :edit-enabled    true
+                                                       :in-pinned-view? false})
+       :render-fn                    render-fn-old
+       :on-viewable-items-changed    on-viewable-items-changed
+       :on-end-reached               list-on-end-reached
+       :on-scroll-to-index-failed    identity              ;;don't remove this
+       :content-container-style      {:padding-top (+ bottom-space 16)
+                                      :padding-bottom 16}
+       :scroll-indicator-insets      {:top bottom-space}    ;;ios only
+       :keyboard-dismiss-mode        :interactive
+       :keyboard-should-persist-taps :handled
+       :onMomentumScrollBegin        state/start-scrolling
+       :onMomentumScrollEnd          state/stop-scrolling
+       ;;TODO https://github.com/facebook/react-native/issues/30034
+       :inverted                     (when platform/ios? true)
+       :style                        (when platform/android? {:scaleY -1})})]))
 
 (defn messages-view [{:keys [chat
                              bottom-space
@@ -426,6 +502,70 @@
     (re-frame/dispatch [:close-chat])
     (re-frame/dispatch [:navigate-back])))
 
+(defn chat-render-old []
+  (let [bottom-space (reagent/atom 0)
+        panel-space (reagent/atom 52)
+        active-panel (reagent/atom nil)
+        position-y (animated/value 0)
+        pan-state (animated/value 0)
+        text-input-ref (quo.react/create-ref)
+        on-update #(when-not (zero? %) (reset! panel-space %))
+        pan-responder (accessory/create-pan-responder position-y pan-state)
+        space-keeper (get-space-keeper-ios bottom-space panel-space active-panel text-input-ref)
+        set-active-panel (get-set-active-panel active-panel)
+        on-close #(set-active-panel nil)]
+    (fn []
+      (let [{:keys [chat-id show-input? group-chat admins invitation-admin] :as chat}
+            ;;we want to react only on these fields, do not use full chat map here
+            @(re-frame/subscribe [:chats/current-chat-chat-view])
+            mutual-contact-requests-enabled? @(re-frame/subscribe [:mutual-contact-requests/enabled?])
+            max-bottom-space (max @bottom-space @panel-space)]
+        [:<>
+         [topbar/topbar {:navigation      :none
+                         :left-component [react/view {:flex-direction :row :margin-left 16}
+                                          [back-button]]
+                         :title-component [topbar-content]
+                         :right-component [react/view {:flex-direction :row :margin-right 16}
+                                           [search-button]]
+                         :border-bottom false}]
+         [connectivity/loading-indicator]
+         (when chat-id
+           (if group-chat
+             [invitation-requests chat-id admins]
+             (when-not mutual-contact-requests-enabled? [add-contact-bar chat-id])))
+         ;;MESSAGES LIST
+         [messages-view-old {:chat          chat
+                             :bottom-space  max-bottom-space
+                             :pan-responder pan-responder
+                             :mutual-contact-requests-enabled? mutual-contact-requests-enabled?
+                             :space-keeper  space-keeper
+                             :show-input?   show-input?}]
+         (when (and group-chat invitation-admin)
+           [accessory/view {:y               position-y
+                            :on-update-inset on-update}
+            [invitation-bar chat-id]])
+         [components/autocomplete-mentions text-input-ref max-bottom-space]
+         (when show-input?
+           ;; NOTE: this only accepts two children
+           [accessory/view {:y               position-y
+                            :pan-state       pan-state
+                            :has-panel       (boolean @active-panel)
+                            :on-close        on-close
+                            :on-update-inset on-update}
+            [react/view
+             [edit/edit-message-auto-focus-wrapper text-input-ref]
+             [reply/reply-message-auto-focus-wrapper text-input-ref]
+             ;; We set the key so we can force a re-render as
+             ;; it does not rely on ratom but just atoms
+             ^{:key (str @components/chat-input-key "chat-input")}
+             [components/chat-toolbar
+              {:chat-id          chat-id
+               :active-panel     @active-panel
+               :set-active-panel set-active-panel
+               :text-input-ref   text-input-ref}]
+             [contact-request/contact-request-message-auto-focus-wrapper text-input-ref]]
+            [bottom-sheet @active-panel]])]))))
+
 (defn chat-render []
   (let [bottom-space (reagent/atom 0)
         panel-space (reagent/atom 52)
@@ -489,6 +629,14 @@
                :text-input-ref   text-input-ref}]
              [contact-request/contact-request-message-auto-focus-wrapper text-input-ref]]
             [bottom-sheet @active-panel]])]))))
+
+(defn chat-old []
+  (reagent/create-class
+   {:component-did-mount (fn []
+                           (react/hw-back-remove-listener navigate-back-handler)
+                           (react/hw-back-add-listener navigate-back-handler))
+    :component-will-unmount (fn [] (react/hw-back-remove-listener navigate-back-handler))
+    :reagent-render chat-render-old}))
 
 (defn chat []
   (reagent/create-class
