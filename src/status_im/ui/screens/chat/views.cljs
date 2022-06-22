@@ -290,10 +290,10 @@
      [chat.group/group-chat-footer chat-id invitation-admin]]))
 
 (defn render-fn-old [{:keys [outgoing type] :as message}
-                 idx
-                 _
-                 {:keys [group-chat public? community? current-public-key space-keeper
-                         chat-id show-input? message-pin-enabled edit-enabled in-pinned-view?]}]
+                     idx
+                     _
+                     {:keys [group-chat public? community? current-public-key space-keeper
+                             chat-id show-input? message-pin-enabled edit-enabled in-pinned-view?]}]
   [react/view {:style (when (and platform/android? (not in-pinned-view?)) {:scaleY -1})}
    (if (= type :datemark)
      [message-datemark-old/chat-datemark (:value message)]

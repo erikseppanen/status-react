@@ -70,11 +70,11 @@
   {:align-self    :flex-start
    :padding-left  8})
 
-(defn pin-indicator [outgoing display-photo?]
+(defn pin-indicator [display-photo?]
   (merge
    {:flex-direction             :row
-    :border-top-left-radius     (if outgoing 12 4)
-    :border-top-right-radius    (if outgoing 4 12)
+    :border-top-left-radius     4
+    :border-top-right-radius    12
     :border-bottom-left-radius  12
     :border-bottom-right-radius 12
     :padding-left               8
@@ -82,27 +82,18 @@
     :padding-vertical           5
     :background-color           colors/gray-lighter
     :justify-content            :center
-    :max-width                  "80%"}
-   (if outgoing
-     {:align-self  :flex-end
-      :align-items :flex-end}
-     {:align-self  :flex-start
-      :align-items :flex-start})
+    :max-width                  "80%"
+    :align-self  :flex-start
+    :align-items :flex-start}
    (when display-photo?
      {:margin-left 44})))
 
-(defn pin-indicator-container [outgoing]
-  (merge
-   {:margin-top      2
-    :align-items     :center
-    :justify-content :center}
-   (if outgoing
-     {:align-self    :flex-end
-      :align-items   :flex-end
-      :padding-right 8}
-     {:align-self   :flex-start
-      :align-items  :flex-start
-      :padding-left 8})))
+(defn pin-indicator-container []
+  {:margin-top      2
+   :justify-content :center
+   :align-self   :flex-start
+   :align-items  :flex-start
+   :padding-left 8})
 
 (defn pinned-by-text-icon-container []
   {:flex-direction :row
@@ -218,12 +209,10 @@
    :padding-left        12
    :text-align-vertical :center})
 
-(defn quoted-message-container [outgoing]
+(defn quoted-message-container []
   {:margin-bottom              6
    :padding-bottom             6
-   :border-bottom-color        (if outgoing
-                                 colors/white-transparent-10
-                                 colors/black-transparent)
+   :border-bottom-color        colors/black-transparent
    :border-bottom-width        2
    :border-bottom-left-radius  2
    :border-bottom-right-radius 2})
@@ -264,12 +253,11 @@
           :text-align :center
           :font-weight "400"))
 
-(defn text-style [outgoing content-type in-popover?]
+(defn text-style [content-type in-popover?]
   (merge
    (when in-popover? {:number-of-lines 2})
    (cond
      (= content-type constants/content-type-system-text) (system-text-style)
-     outgoing (outgoing-text-style)
      :else (default-text-style))))
 
 (defn emph-text-style []
@@ -280,10 +268,8 @@
   (update (emph-text-style) :style
           assoc :color colors/white-persist))
 
-(defn emph-style [outgoing]
-  (if outgoing
-    (outgoing-emph-text-style)
-    (emph-text-style)))
+(defn emph-style []
+  (emph-text-style))
 
 (defn strong-text-style []
   (update (default-text-style) :style
@@ -293,20 +279,17 @@
   (update (strong-text-style) :style
           assoc :color colors/white-persist))
 
-(defn strong-style [outgoing]
-  (if outgoing
-    (outgoing-strong-text-style)
-    (strong-text-style)))
+(defn strong-style []
+  (outgoing-strong-text-style)
+  (strong-text-style))
 
-(defn strong-emph-style [outgoing]
-  (update (strong-style outgoing) :style
+(defn strong-emph-style []
+  (update (strong-style) :style
           assoc :font-style :italic))
 
-(defn strikethrough-style [outgoing]
+(defn strikethrough-style []
   (cond-> (update (default-text-style) :style
-                  assoc :text-decoration-line :line-through)
-    outgoing
-    (update :style assoc :color colors/white-persist)))
+                  assoc :text-decoration-line :line-through)))
 
 (def code-block-background "#2E386B")
 
@@ -332,10 +315,8 @@
           assoc
           :border-left-color colors/white-transparent-70-persist))
 
-(defn blockquote-style [outgoing]
-  (if outgoing
-    (outgoing-blockquote-style)
-    (default-blockquote-style)))
+(defn blockquote-style []
+  (default-blockquote-style))
 
 (defn default-blockquote-text-style []
   (update (default-text-style) :style
@@ -349,10 +330,9 @@
           assoc
           :color colors/white-transparent-70-persist))
 
-(defn blockquote-text-style [outgoing]
-  (if outgoing
-    (outgoing-blockquote-text-style)
-    (default-blockquote-text-style)))
+(defn blockquote-text-style []
+  (outgoing-blockquote-text-style)
+  (default-blockquote-text-style))
 
 (defn image-message
   [{:keys [width height]}]
@@ -416,7 +396,7 @@
    :padding-vertical   10
    :padding-horizontal 16})
 
-(defn content-type-contact-request [outgoing]
+(defn content-type-contact-request []
   {:width           168
    :min-height      224.71
    :border-radius   8
@@ -425,6 +405,6 @@
    :align-items     :center
    :padding-bottom  10
    :margin-vertical 4
-   :align-self      (if outgoing :flex-end :flex-start)
-   :margin-right    (if outgoing 8 0)
-   :margin-left     (if outgoing 0 8)})
+   :align-self      :flex-start
+   :margin-right    0
+   :margin-left     8})

@@ -14,9 +14,9 @@
 (defn prepare-message [{:keys [message-id
                                clock-value
                                message-type
-                                   from
-                                   outgoing
-                                   whisper-timestamp]}]
+                               from
+                               outgoing
+                               whisper-timestamp]}]
   (-> {:whisper-timestamp whisper-timestamp
        :from from
        :one-to-one? (= constants/message-type-one-to-one message-type)
