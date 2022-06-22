@@ -2,6 +2,10 @@
   (:require [status-im.utils.handlers :refer [<sub]]
             [status-im.utils.platform :as platform]))
 
+;; For translucent status bar, dimensions/window also includes status bar's height,
+;; this offset is used for correctly calculating switcher position
+(def switcher-height-offset 24)
+
 (def switcher-button-radius 24)
 
 (def switcher-button-size
@@ -19,9 +23,6 @@
   (get-in
    switcher-bottom-positions
    [(keyword platform/os) view-id]))
-
-(defn switcher-center-position [view-id]
-  (+ (switcher-bottom-position view-id) (/ switcher-button-size 2)))
 
 ;; TODO(parvesh) - use different height for android and ios(Confirm from Design)
 (defn bottom-tabs-height []
