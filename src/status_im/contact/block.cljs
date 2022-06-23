@@ -4,10 +4,12 @@
             [status-im.contact.db :as contact.db]
             [status-im.data-store.chats :as chats-store]
             [status-im.data-store.contacts :as contacts-store]
+            [status-im.ethereum.json-rpc :as json-rpc]
             [status-im.navigation :as navigation]
-            [status-im.utils.types :as types]
             [status-im.notifications-center.core :as notification-center]
-            [status-im.utils.fx :as fx]))
+            [status-im.utils.fx :as fx]
+            [status-im.utils.types :as types]
+            [taoensso.timbre :as log]))
 
 (fx/defn clean-up-chat
   [{:keys [db] :as cofx}
@@ -64,7 +66,13 @@
                        ;; add the contact to blocked contacts
                        (update :contacts/blocked (fnil conj #{}) public-key)
                        ;; update the contact in contacts list
-                       (assoc-in [:contacts/contacts public-key] contact))}
+                       (assoc-in [:contacts/contacts public-key] contact))
+               ::json-rpc/call [{:method "wakuext_removeContact"
+                                 :params [public-key]
+                                 :on-success #(log/debug "contact removed successfully")}
+                                {:method "wakuext_retractContactRequest"
+                                 :params [{:contactId public-key}]
+                                 :on-success #(log/debug "contact removed successfully")}]}
               (contacts-store/block
                public-key #(do (re-frame/dispatch [::contact-blocked contact (.-chats %)])
                                (re-frame/dispatch [:sanitize-messages-and-process-response %])
