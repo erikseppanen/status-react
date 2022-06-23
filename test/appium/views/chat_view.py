@@ -114,6 +114,23 @@ class ProfileBlockContactButton(Button):
         self.wait_for_element().click()
 
 
+class ProfileMuteContactButton(Button):
+    def __init__(self, driver):
+        super(ProfileMuteContactButton, self).__init__(driver, accessibility_id="Mute-item-button")
+
+    def click(self):
+        self.scroll_to_element()
+        self.wait_for_element().click()
+
+
+class ProfileUnmuteContactButton(Button):
+    def __init__(self, driver):
+        super(ProfileMuteContactButton, self).__init__(driver, accessibility_id="Unmute-item-button")
+
+    def click(self):
+        self.scroll_to_element()
+        self.wait_for_element().click()
+
 class ChatElementByText(Text):
     def __init__(self, driver, text):
         self.message_text = text
@@ -669,6 +686,8 @@ class ChatView(BaseView):
         self.profile_block_contact = ProfileBlockContactButton(self.driver)
         self.confirm_block_contact_button = Button(self.driver, accessibility_id="block-contact-confirm")
         self.unblock_contact_button = UnblockContactButton(self.driver)
+        self.profile_mute_contact = ProfileMuteContactButton(self.driver)
+        self.profile_unmute_contact = ProfileUnmuteContactButton(self.driver)
         self.profile_add_to_contacts = Button(self.driver, accessibility_id="Add to contacts-item-button")
         self.profile_details = Button(self.driver, accessibility_id="share-button")
         self.profile_nickname = Text(self.driver,
@@ -930,6 +949,14 @@ class ChatView(BaseView):
         self.driver.info("Block contact from other user profile")
         self.profile_block_contact.click()
         self.confirm_block_contact_button.click()
+
+    def mute_contact(self):
+        self.driver.info("Mute a contact")
+        self.profile_mute_contact.click()
+
+    def unmute_contact(self):
+        self.driver.info("Unmute a contact")
+        self.profile_unmute_contact.click()
 
     def open_user_profile_from_public_chat(self, message):
         chat_element = self.chat_element_by_text(message)
