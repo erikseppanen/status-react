@@ -21,6 +21,14 @@
    :border-width     3.5
    :border-color     (:ui-background  @colors/theme)})
 
+(defn visibility-status-dot-old [dot-color size]
+  {:background-color dot-color
+   :width            size
+   :height           size
+   :border-radius    (/ size 2)
+   :border-width     1
+   :border-color     colors/white})
+
 (defn visibility-status-profile-dot [color size border-width margin-left]
   (merge (visibility-status-dot color size)
          {:margin-right 6

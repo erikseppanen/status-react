@@ -92,6 +92,21 @@
             :position            :absolute
             :accessibility-label accessibility-label})))
 
+(defn icon-visibility-status-dot-old [public-key container-size identicon?]
+  (let [my-icon?                 (my-icon? public-key)
+        visibility-status-update (visibility-status-update public-key my-icon?)
+        size                     (/ container-size 4)
+        margin                   (if identicon? (/ size 6) (/ size 7))
+        dot-color                (dot-color visibility-status-update my-icon?)
+        accessibility-label      (if (= dot-color colors/color-online)
+                                   :online-profile-photo-dot
+                                   :offline-profile-photo-dot)]
+    (merge (styles/visibility-status-dot-old dot-color size)
+           {:bottom              margin
+            :right               margin
+            :position            :absolute
+            :accessibility-label accessibility-label})))
+
 (defn visibility-status-order [public-key]
   (let [my-icon?                 (my-icon? public-key)
         visibility-status-update (visibility-status-update public-key my-icon?)
